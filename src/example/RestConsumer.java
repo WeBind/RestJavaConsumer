@@ -171,10 +171,10 @@ public class RestConsumer {
             
             JSONObject sent = new JSONObject();
             sent.put("id", this.id + "-" + cpt);
-            sent.put("time", time1 - time4);
+            sent.put("time", String.valueOf(time1 - time4));
             JSONObject received = new JSONObject();
             received.put("id", this.id + "-" + cpt);
-            received.put("time", time2 - time4);
+            received.put("time", String.valueOf(time2 - time4));
             listSent.add(sent);
             listReceived.add(received);
             
