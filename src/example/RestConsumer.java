@@ -7,6 +7,7 @@ package example;
 
 
 import com.rabbitmq.client.AMQP;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,6 +17,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -43,6 +45,7 @@ public class RestConsumer {
     private String broadcast;
     private String callback;
     private Connection queueConnection;
+    private Channel channel;
     private JSONParser parser;
     private int startingTime;
     private int size;
@@ -57,6 +60,7 @@ public class RestConsumer {
         this.broadcast = broadcast;
         this.callback = callback;
         this.queueConnection = null;
+        this.channel = null;
         this.parser = new JSONParser();
         this.startingTime = 0;
         this.size = 1;
@@ -71,17 +75,17 @@ public class RestConsumer {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
         this.queueConnection = factory.newConnection();
-        Channel channel = queueConnection.createChannel();
+        this.channel = this.queueConnection.createChannel();
         
         // declare the exchange
-        channel.exchangeDeclare(this.exchange, "direct");
+        this.channel.exchangeDeclare(this.exchange, "direct");
 
         //declare the queue
-        String queueName = channel.queueDeclare().getQueue();
+        String queueName = this.channel.queueDeclare().getQueue();
         
         //bind the queue to the exchange (id + broadcast);
-        channel.queueBind(queueName, this.exchange, this.id);
-        channel.queueBind(queueName, this.exchange, this.broadcast);
+        this.channel.queueBind(queueName, this.exchange, this.id);
+        this.channel.queueBind(queueName, this.exchange, this.broadcast);
         
         //wait for orders message
         System.out.println(" [*] Waiting for orders.");
@@ -113,7 +117,7 @@ public class RestConsumer {
                             if(type.equals("go")) {
                                 try {
                                     if(getProvider() == null)
-                                        disconnectEverything();
+                                        this.getChannel().getConnection().close();
                                     else
                                         doStuff();
                                 } catch (SOAPException ex) {
@@ -136,19 +140,24 @@ public class RestConsumer {
             }
         };
 
-        channel.basicConsume(queueName, true, consumer);
+        this.channel.basicConsume(queueName, true, consumer);
     }
 
-    public void doStuff() throws SOAPException, InterruptedException, Exception {
+    @SuppressWarnings("unchecked")
+	public void doStuff() throws SOAPException, InterruptedException, Exception {
         int cpt = 0;
         long time1, time2, time3, time4;
+        JSONObject data = new JSONObject();
+        data.put("id", this.id);
+        JSONArray listSent = new JSONArray();
+        JSONArray listReceived = new JSONArray();
 
         //new rest client
         HttpClient client = HttpClientBuilder.create().build();
         HttpGet request = new HttpGet(this.provider);
 
         //sleep waiting for the starting time
-        System.out.println("Starting time : Sleep for " + this.startingTime + " ms\n");
+        System.out.println("Starting time : Sleep for " + this.startingTime + " ms");
         Thread.sleep(startingTime);
         
         time3 = System.currentTimeMillis();
@@ -160,6 +169,15 @@ public class RestConsumer {
             HttpResponse response = client.execute(request);
             time2 = System.currentTimeMillis();
             
+            JSONObject sent = new JSONObject();
+            sent.put("id", this.id + "-" + cpt);
+            sent.put("time", time1 - time4);
+            JSONObject received = new JSONObject();
+            received.put("id", this.id + "-" + cpt);
+            received.put("time", time2 - time4);
+            listSent.add(sent);
+            listReceived.add(received);
+            
             BufferedReader rd = new BufferedReader (new InputStreamReader(response.getEntity().getContent()));
             String line = "";
             String res = "";
@@ -168,7 +186,7 @@ public class RestConsumer {
             }
 
             System.out.println("\nRest response : " + res);
-            System.out.println("\nNumber of bytes received : " + res.getBytes("UTF-8").length);
+            System.out.println("Number of bytes received : " + res.getBytes("UTF-8").length);
             
             System.out.println("Delay of call : " + (time2 - time1) + " ms");
             //System.out.println("\nPeriod : Sleep for " + period + " ms");
@@ -177,18 +195,15 @@ public class RestConsumer {
             time3 = System.currentTimeMillis();
         }
 
+        data.put("sent", listSent);
+        data.put("received", listReceived);
+        this.channel.queueDeclare(this.callback, false, false, false, null);
+        channel.basicPublish("", this.callback, null, data.toJSONString().getBytes());
         System.out.println("\nMission executed : " + cpt + " requests in " + (time3 - time4) + " ms");
-
-        disconnectEverything();
-    }
-
-    private void disconnectEverything() {
-        try {
-        	System.out.println("\n\nDisconnecting rabbitmq");
-            this.queueConnection.close();
-        } catch (IOException ex) {
-            Logger.getLogger(RestConsumer.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        
+        System.out.println("\nDisconnecting rabbitmq");
+        this.queueConnection.close();
+        
     }
 
     public static void main(String[] args)
