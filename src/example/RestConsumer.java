@@ -52,8 +52,13 @@ public class RestConsumer {
     private int duration;
     private int period;
     private String provider;
-
-    public RestConsumer(String id, String exchange, String broadcast, String callback)
+    private Boolean endReceived;
+    private JSONObject data;
+    private JSONArray listSent;
+    private JSONArray listReceived;
+    
+    @SuppressWarnings("unchecked")
+	public RestConsumer(String id, String exchange, String broadcast, String callback)
     {
         this.id = id;
         this.exchange = exchange;
@@ -67,6 +72,11 @@ public class RestConsumer {
         this.duration = 0;
         this.period = 0;
         this.provider = null;
+        this.endReceived = false;
+        this.data = new JSONObject();
+        this.data.put("id", this.id);
+        this.listSent = new JSONArray();
+        this.listReceived = new JSONArray();
     }
 
     public void run () throws Exception
@@ -116,19 +126,33 @@ public class RestConsumer {
                         } else {
                             if(type.equals("go")) {
                                 try {
-                                    if(getProvider() == null)
+                                    if(getProvider() == null) {
+                                        putData("error", "provider unknown");
                                         this.getChannel().getConnection().close();
-                                    else
-                                        doStuff();
+                                    } else {
+                                        doRequest();
+                                    }
                                 } catch (SOAPException ex) {
                                     Logger.getLogger(RestConsumer.class.getName()).log(Level.SEVERE, null, ex);
+                                    putData("error", "SOAPException");
                                 } catch (InterruptedException ex) {
                                     Logger.getLogger(RestConsumer.class.getName()).log(Level.SEVERE, null, ex);
+                                    putData("error", "InterruptedException");
                                 } catch (Exception ex) {
                                     Logger.getLogger(RestConsumer.class.getName()).log(Level.SEVERE, null, ex);
+                                    putData("error", "Exception");
                                 }
                             } else {
-                                System.out.println("[!] Last message was unreadable");
+                            	//if end message
+                            	if(type.equals("end")) {
+                            		if(getProvider() == null) {
+                                        this.getChannel().getConnection().close();
+                            		} else {
+                            			setEndReceived(true);
+                                    }
+                            	} else {
+                            		System.out.println("[!] Last message was unreadable");
+                            	}
                             }
                         }
                     } else {
@@ -144,13 +168,11 @@ public class RestConsumer {
     }
 
     @SuppressWarnings("unchecked")
-	public void doStuff() throws SOAPException, InterruptedException, Exception {
+	public void doRequest() throws SOAPException, InterruptedException, Exception {
         int cpt = 0;
         long time1, time2, time3, time4;
-        JSONObject data = new JSONObject();
-        data.put("id", this.id);
-        JSONArray listSent = new JSONArray();
-        JSONArray listReceived = new JSONArray();
+        
+        this.data.put("id", this.id);
 
         //new rest client
         HttpClient client = HttpClientBuilder.create().build();
@@ -163,7 +185,7 @@ public class RestConsumer {
         time3 = System.currentTimeMillis();
         time4 = System.currentTimeMillis();
 
-        while(time4 + this.duration > time3) {
+        while(time4 + this.duration > time3 && !this.endReceived) {
         	// Process the rest call
             time1 = System.currentTimeMillis();
             HttpResponse response = client.execute(request);
@@ -175,8 +197,8 @@ public class RestConsumer {
             JSONObject received = new JSONObject();
             received.put("id", this.id + "-" + cpt);
             received.put("time", String.valueOf(time2 - time4));
-            listSent.add(sent);
-            listReceived.add(received);
+            this.listSent.add(sent);
+            this.listReceived.add(received);
             
             BufferedReader rd = new BufferedReader (new InputStreamReader(response.getEntity().getContent()));
             String line = "";
@@ -195,15 +217,18 @@ public class RestConsumer {
             time3 = System.currentTimeMillis();
         }
 
-        data.put("sent", listSent);
-        data.put("received", listReceived);
-        this.channel.queueDeclare(this.callback, false, false, false, null);
-        channel.basicPublish("", this.callback, null, data.toJSONString().getBytes());
         System.out.println("\nMission executed : " + cpt + " requests in " + (time3 - time4) + " ms");
-        
+        doCallback();
+    }
+    
+    @SuppressWarnings("unchecked")
+	private void doCallback() throws IOException {
+        this.data.put("sent", listSent);
+        this.data.put("received", listReceived);
+        this.channel.queueDeclare(this.callback, false, false, false, null);
+        channel.basicPublish("", this.callback, null, this.data.toJSONString().getBytes());
         System.out.println("\nDisconnecting rabbitmq");
         this.queueConnection.close();
-        
     }
 
     public static void main(String[] args)
@@ -254,5 +279,14 @@ public class RestConsumer {
 
     public void setStartingTime(int startingTime) {
         this.startingTime = startingTime;
+    }
+    
+    public void setEndReceived(Boolean endReceived) {
+        this.endReceived = endReceived;
+    }
+    
+    @SuppressWarnings("unchecked")
+	public void putData(String key, Object value) {
+        this.data.put(key, value);
     }
 }
