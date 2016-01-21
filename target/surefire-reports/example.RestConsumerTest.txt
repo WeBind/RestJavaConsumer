@@ -1,0 +1,60 @@
+-------------------------------------------------------------------------------
+Test set: example.RestConsumerTest
+-------------------------------------------------------------------------------
+Tests run: 15, Failures: 0, Errors: 14, Skipped: 0, Time elapsed: 0.071 sec <<< FAILURE!
+testRun(example.RestConsumerTest)  Time elapsed: 0.005 sec  <<< ERROR!
+java.lang.NullPointerException
+	at example.RestConsumerTest.testRun(RestConsumerTest.java:36)
+
+testDoRequest(example.RestConsumerTest)  Time elapsed: 0.001 sec  <<< ERROR!
+java.lang.NullPointerException
+	at example.RestConsumerTest.testDoRequest(RestConsumerTest.java:45)
+
+testGetDuration(example.RestConsumerTest)  Time elapsed: 0.001 sec  <<< ERROR!
+java.lang.NullPointerException
+	at example.RestConsumerTest.testGetDuration(RestConsumerTest.java:64)
+
+testSetDuration(example.RestConsumerTest)  Time elapsed: 0.001 sec  <<< ERROR!
+java.lang.NullPointerException
+	at example.RestConsumerTest.testSetDuration(RestConsumerTest.java:75)
+
+testGetPeriod(example.RestConsumerTest)  Time elapsed: 0.001 sec  <<< ERROR!
+java.lang.NullPointerException
+	at example.RestConsumerTest.testGetPeriod(RestConsumerTest.java:85)
+
+testSetPeriod(example.RestConsumerTest)  Time elapsed: 0 sec  <<< ERROR!
+java.lang.NullPointerException
+	at example.RestConsumerTest.testSetPeriod(RestConsumerTest.java:96)
+
+testGetProvider(example.RestConsumerTest)  Time elapsed: 0.001 sec  <<< ERROR!
+java.lang.NullPointerException
+	at example.RestConsumerTest.testGetProvider(RestConsumerTest.java:106)
+
+testSetProvider(example.RestConsumerTest)  Time elapsed: 0 sec  <<< ERROR!
+java.lang.NullPointerException
+	at example.RestConsumerTest.testSetProvider(RestConsumerTest.java:117)
+
+testGetSize(example.RestConsumerTest)  Time elapsed: 0.001 sec  <<< ERROR!
+java.lang.NullPointerException
+	at example.RestConsumerTest.testGetSize(RestConsumerTest.java:127)
+
+testSetSize(example.RestConsumerTest)  Time elapsed: 0 sec  <<< ERROR!
+java.lang.NullPointerException
+	at example.RestConsumerTest.testSetSize(RestConsumerTest.java:138)
+
+testGetStartingTime(example.RestConsumerTest)  Time elapsed: 0.001 sec  <<< ERROR!
+java.lang.NullPointerException
+	at example.RestConsumerTest.testGetStartingTime(RestConsumerTest.java:148)
+
+testSetStartingTime(example.RestConsumerTest)  Time elapsed: 0.001 sec  <<< ERROR!
+java.lang.NullPointerException
+	at example.RestConsumerTest.testSetStartingTime(RestConsumerTest.java:159)
+
+testSetEndReceived(example.RestConsumerTest)  Time elapsed: 0 sec  <<< ERROR!
+java.lang.NullPointerException
+	at example.RestConsumerTest.testSetEndReceived(RestConsumerTest.java:169)
+
+testPutData(example.RestConsumerTest)  Time elapsed: 0.001 sec  <<< ERROR!
+java.lang.NullPointerException
+	at example.RestConsumerTest.testPutData(RestConsumerTest.java:180)
+
