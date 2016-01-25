@@ -233,12 +233,13 @@ public class RestConsumer {
 
     public static void main(String[] args)
     {
-        try {
+        System.out.println("Just Another Test Text.");
+      /*  try {
             RestConsumer test = new RestConsumer(args[0], args[1], args[2], args[3]);
             test.run();
         } catch (Exception ex) {
             Logger.getLogger(RestConsumer.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        }*/
     }
 
     public int getDuration() {

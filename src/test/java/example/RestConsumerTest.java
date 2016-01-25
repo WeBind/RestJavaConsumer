@@ -12,7 +12,7 @@ import junit.framework.TestCase;
  * @author Adirael
  */
 public class RestConsumerTest extends TestCase {
-    
+
     public RestConsumerTest(String testName) {
         super(testName);
     }
@@ -56,10 +56,10 @@ public class RestConsumerTest extends TestCase {
 
     /**
      * Test of getDuration method, of class RestConsumer.
-     *
+     */
     public void testGetDuration() {
         System.out.println("getDuration");
-        RestConsumer instance = null;
+        RestConsumer instance = new RestConsumer("100", "test", "test", "test");
         int expResult = 0;
         int result = instance.getDuration();
         assertEquals(expResult, result);
@@ -67,20 +67,23 @@ public class RestConsumerTest extends TestCase {
 
     /**
      * Test of setDuration method, of class RestConsumer.
-     *
+     */
     public void testSetDuration() {
         System.out.println("setDuration");
-        int duration = 0;
-        RestConsumer instance = null;
+        int duration = 10;
+        int expResult = 10;
+        RestConsumer instance = new RestConsumer("100", "test", "test", "test");
         instance.setDuration(duration);
+        int result = instance.getDuration();
+        assertEquals(expResult, result);
     }
 
     /**
      * Test of getPeriod method, of class RestConsumer.
-     *
+     */
     public void testGetPeriod() {
         System.out.println("getPeriod");
-        RestConsumer instance = null;
+        RestConsumer instance = new RestConsumer("100", "test", "test", "test");
         float expResult = 0.0F;
         float result = instance.getPeriod();
         assertEquals(expResult, result, 0.0);
@@ -88,12 +91,15 @@ public class RestConsumerTest extends TestCase {
 
     /**
      * Test of setPeriod method, of class RestConsumer.
-     *
+     */
     public void testSetPeriod() {
         System.out.println("setPeriod");
-        int period = 0;
-        RestConsumer instance = null;
+        RestConsumer instance = new RestConsumer("100", "test", "test", "test");
+        int period = 42;
+        float expResult = 42.0F;
         instance.setPeriod(period);
+        float result = instance.getPeriod();
+        assertEquals(expResult, result, 0.0);
     }
 
     /**
